@@ -1,0 +1,43 @@
+/* Larger hit areas keep the quiet dashboard visuals without adding more labels. */
+.studio .summary-plot-action{position:relative;isolation:isolate}
+.studio.studio .summary-plot-trigger{position:absolute;inset:0;width:100%;height:100%;z-index:2;border:0!important;border-radius:6px!important;padding:0!important}
+.studio.studio .summary-plot-trigger:hover{background:#b8deed09!important;box-shadow:inset 0 0 0 1px #b8deed44!important}
+.studio .summary-signal-plot{flex:1;min-height:20px;display:flex}
+.studio .summary-signal-plot>.figure-viewport{height:100%;width:100%}
+.studio.studio .summary-signal-value{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0!important;font-size:10px;color:#849fae}
+.studio.studio .summary-ring-trigger{height:100%;max-height:150px;aspect-ratio:1;max-width:42%;flex-shrink:1;padding:0!important;min-width:0}
+.studio .summary-ring-trigger svg{height:100%;width:100%;max-width:none;max-height:none}
+.studio .summary-distribution dl>div{position:relative}
+.studio.studio .summary-number-trigger{font:inherit;color:inherit;line-height:inherit;padding:0!important;min-height:0;position:static}
+.studio .summary-number-trigger::after{content:'';position:absolute;inset:-5px;border-radius:6px}
+.studio .summary-number-trigger:hover::after{background:#b8deed0c}
+.studio.studio .summary-risk-total{display:flex;flex-direction:column;gap:6px;padding:8px!important}
+.studio .summary-risk [role=button]{cursor:pointer;outline:none}
+.studio .summary-risk [role=button]:hover>circle:last-child,.studio .summary-risk [role=button]:focus-visible>circle:last-child{stroke:#e4f5ff;stroke-width:2}
+.studio.studio .summary-report-total{display:flex;align-items:center;gap:12px;padding:4px!important;color:inherit}
+.studio.studio .summary-stage-bars button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 8px!important;min-width:28px}
+.studio.studio .summary-role-bars button{display:block;width:100%;padding:5px 0!important}
+.studio.studio .summary-avatar-group>button{height:37px;width:37px;min-height:0;border:1px solid var(--avatar-color)!important;background:#233e50!important;border-radius:50%!important;display:grid;place-items:center;margin-left:-6px;padding:0!important;font-size:13px;color:#c2d6e1;position:relative}
+.studio.studio .summary-avatar-group>button:hover{z-index:1;transform:translateY(-3px);background:#35566a!important}
+.studio .clean-widget button:focus-visible{outline:2px solid #a3d5e7!important;outline-offset:2px}
+.studio.studio .summary-fleet button:hover,.studio.studio .summary-role-bars button:hover,.studio.studio .summary-stage-bars button:hover,.studio.studio .summary-risk-total:hover,.studio.studio .summary-report-total:hover{background:#b8deed0c!important}
+.studio .summary-packet-strip{height:16px;align-items:center}
+.studio.studio .summary-packet-strip button{position:relative}
+.studio .summary-packet-strip button::after{content:'';position:absolute;inset:-5px 0}
+.studio.studio .summary-trace>div:first-child button{padding:0!important}
+.studio .summary-time-track button::after{content:'';position:absolute;inset:-6px}
+.studio .summary-detail-list{display:flex;flex-direction:column;gap:10px}
+.studio.studio .summary-detail-list>button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:16px!important}
+.studio .summary-detail-list>button>span{flex:1;min-width:0}
+.studio .summary-detail-list strong{display:block;font-size:14px;font-weight:500;line-height:1.5}
+.studio .summary-detail-list small{display:block;color:#8cabbc;font-size:11px;line-height:1.8;margin-top:5px}
+.studio .summary-detail-list b{font-size:12px;font-weight:400;white-space:nowrap;color:#acd3df}
+.studio .summary-detail-record{padding:20px;border:1px solid #a7cbdc22;border-radius:14px;background:#adcfe708}
+.studio .summary-detail-record p,.studio .summary-detail-record>span,.studio .summary-detail-empty{font-size:13px;color:#9fb8c6;line-height:1.8}
+.studio .scene-widget[data-widget-interactive]{cursor:grab}
+@container tile (max-height:180px){
+ .studio.studio .summary-ring-trigger{max-width:80px;max-height:80px}
+ .studio.studio .summary-avatar-group>button{width:27px;height:27px;font-size:11px}
+ .studio.studio .summary-stage-bars button{gap:3px;padding:2px 5px!important}
+ .studio .summary-report-total svg{width:24px}
+}

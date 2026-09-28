@@ -1,0 +1,8 @@
+import {ArrowUpRight,Boxes,Search} from 'lucide-react'
+import {widgetCatalog,widgetCategoryOrder} from '../data/catalog'
+import {goWorkspace,moduleRoute} from './navigation'
+
+export function GlassLibrary({query,setQuery,category,setCategory}:{query:string;setQuery:(v:string)=>void;category:string;setCategory:(v:string)=>void}){
+ const rows=widgetCatalog.filter(w=>(category==='全部'||w.category===category)&&`${w.name}${w.description}`.toLowerCase().includes(query.toLowerCase()))
+ return <section className="glass-library"><header className="product-section-heading"><div><h1>功能组件</h1></div><button onClick={()=>goWorkspace({page:'designer'})}>大屏编排 <ArrowUpRight size={14}/></button></header><div className="haze-library-tools"><label><Search size={15}/><input aria-label="搜索功能组件" placeholder="搜索组件" value={query} onChange={e=>setQuery(e.target.value)}/></label><span>{rows.length} / {widgetCatalog.length}</span></div><div className="glass-category-tabs" aria-label="组件分类">{['全部',...widgetCategoryOrder].map(c=><button key={c} aria-pressed={category===c} onClick={()=>setCategory(c)}>{c}<small>{widgetCatalog.filter(w=>c==='全部'||w.category===c).length}</small></button>)}</div><div className="library-grid">{rows.map(w=><article key={w.kind}><header><Boxes size={21}/><span>{w.category}</span></header><h3>{w.name}</h3><details className="haze-capability-detail"><summary>功能范围</summary><p>{w.description}</p><div className="library-tags">{w.features?.map(f=><span key={f}>{f}</span>)}</div></details><button className="library-open" aria-label={`查看${w.name}`} onClick={()=>goWorkspace(moduleRoute(w.kind))}>打开 <ArrowUpRight size={15}/></button></article>)}</div>{!rows.length&&<div className="empty">没有匹配的功能</div>}</section>
+}

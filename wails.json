@@ -1,0 +1,16 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "矿大土行孙V2演示系统",
+  "outputfilename": "Kuangda-Tuxingsun-V2-Demo",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "info": {
+    "productVersion": "2.4.4"
+  },
+  "author": {
+    "name": "矿大项目组",
+    "email": ""
+  }
+}

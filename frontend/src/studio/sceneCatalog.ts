@@ -1,0 +1,22 @@
+import type { Device } from './store'
+
+export type PlatformKind = 'satellite' | 'drone' | 'rover' | 'deep'
+export const platformKinds: PlatformKind[] = ['satellite','drone','rover','deep']
+export interface PlatformSpec { kind:PlatformKind; id:string; name:string; layer:string; english:string; model:string; protocol:string; camera:boolean; parts:{id:string;name:string;value:string;unit:string}[] }
+export const platforms:Record<PlatformKind,PlatformSpec> = {
+ satellite:{kind:'satellite',id:'SAT-301',name:'卫星遥感监测',layer:'空',english:'SPACE',model:'KD-SAT / 概念载荷',protocol:'遥感产品文件 / 地面站下传',camera:false,parts:[{id:'payload',name:'遥感观测载荷',value:'SAR',unit:'工作模式'},{id:'solar',name:'太阳能电池翼',value:'1.6',unit:'kW 样例'},{id:'bus',name:'卫星平台',value:'28',unit:'V 母线'},{id:'link',name:'测控天线',value:'X',unit:'波段样例'}]},
+ drone:{kind:'drone',id:'UAV-201',name:'无人机航空巡检',layer:'天',english:'AIR',model:'KD-VTOL / 固定翼概念机',protocol:'MAVLink / 图传链路（样例）',camera:true,parts:[{id:'airframe',name:'飞翼机身',value:'巡航',unit:'样例状态'},{id:'rotor',name:'垂直起降动力组',value:'4',unit:'组电机'},{id:'camera',name:'光电云台',value:'可见光',unit:'合成视景'},{id:'battery',name:'飞行电池',value:'48',unit:'V 样例'},{id:'avionics',name:'飞控与通信',value:'RTK',unit:'定位模式'}]},
+ rover:{kind:'rover',id:'UGV-202',name:'地面雷达巡检车',layer:'地',english:'GROUND',model:'KD-ROVER / 越野雷达平台',protocol:'Ethernet / 4G 回传（样例）',camera:true,parts:[{id:'body',name:'防护车体',value:'32.4',unit:'°C 样例'},{id:'wheels',name:'独立行走机构',value:'4',unit:'轮概念结构'},{id:'radar',name:'扫描雷达与转台',value:'120',unit:'° 扫描扇区'},{id:'camera',name:'巡检摄像模组',value:'可见光',unit:'合成视景'},{id:'battery',name:'动力电池组',value:'48',unit:'V 样例'}]},
+ deep:{kind:'deep',id:'DEEP-203',name:'深地感知监测站',layer:'深',english:'SUBSURFACE',model:'KD-DEEP / 地表采集站',protocol:'有线探头 / MQTT 回传（样例）',camera:true,parts:[{id:'head',name:'多传感观测头',value:'3',unit:'路概念镜头'},{id:'solar',name:'双翼太阳能板',value:'180',unit:'W 样例'},{id:'mast',name:'防护立柱',value:'地表',unit:'安装位置'},{id:'battery',name:'供电与采集舱',value:'24',unit:'V 样例'},{id:'probe',name:'关联地下探头',value:'3',unit:'轴微震输入'}]},
+}
+export const platformFor=(device?:Pick<Device,'id'>):PlatformKind|undefined=>platformKinds.find(k=>platforms[k].id===device?.id)
+export const sceneKinds=['mineDigitalTwin','satelliteTwin','droneTwin','roverTwin','deepTwin','missionReplay','inspectionFeed','terrainReference','remoteSensingCompare']
+export const widgetPlatform=(kind:string):PlatformKind|undefined=>({satelliteTwin:'satellite',droneTwin:'drone',roverTwin:'rover',deepTwin:'deep'} as Record<string,PlatformKind>)[kind]
+export function seedPlatformDevices():Device[]{return platformKinds.map((k,i)=>({id:platforms[k].id,name:platforms[k].name,type:['遥感卫星','巡检无人机','雷达巡检车','深地感知站'][i],area:'北帮',status:'在线',battery:[92,78,86,94][i],signal:[-61,-65,-58,-63][i],rate:['按轨次','10 Hz','2 Hz','1000 Hz'][i],x:[-95,12,86,-76][i],y:[-80,-25,35,65][i],owner:'矿大演示组',model:platforms[k].model}))}
+export const clampFrame=(frame:number)=>Math.max(0,Math.min(120,Number.isFinite(frame)?frame:0))
+export const observationFrame=(device:Device|undefined,frame:number)=>clampFrame(device?.status==='离线'?(device.lastSeenFrame??0):frame)
+export const sceneTime=(frame:number)=>{const s=Math.round(clampFrame(frame)*30);return `09:${String(Math.floor(s/60)%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`.replace('09:00:00',frame>=120?'10:00:00':'09:00:00')}
+export const missionEvents=[{frame:0,title:'开始巡检',kind:'drone'},{frame:28,title:'北帮影像采集',kind:'drone'},{frame:54,title:'雷达异常复核',kind:'rover'},{frame:78,title:'微震事件定位',kind:'deep'},{frame:106,title:'多源成果复核',kind:'satellite'}] as const
+export function platformTelemetry(kind:PlatformKind,frame:number,device?:Device){const f=observationFrame(device,frame);return {battery:Math.max(0,(device?.battery??85)-Math.floor(f/(kind==='drone'?12:40))),signal:device?.signal??-62,online:device?.status!=='离线',altitude:kind==='drone'?Math.round(126+8*Math.sin(f/13)):0,speed:kind==='drone'?(16+2*Math.sin(f/9)).toFixed(1):kind==='rover'?(3+Math.sin(f/18)).toFixed(1):'0',progress:Math.round(f/120*100)}}
+// Schematic coordinates (not survey coordinates). Satellite height is deliberately compressed.
+export function platformPosition(kind:PlatformKind,frame:number):[number,number,number]{const f=clampFrame(frame),a=f/120*Math.PI*2;switch(kind){case 'drone':return [Math.cos(a)*175,145+Math.sin(a*2)*12,Math.sin(a)*135];case 'rover':return [Math.cos(a*.5+.3)*205,24,Math.sin(a*.5+.3)*160];case 'satellite':return [-200+f*3.1,185,-165];default:return [-210,26,100]}}

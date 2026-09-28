@@ -1,0 +1,19 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import {build} from 'esbuild'
+import {createRequire} from 'node:module'
+import {readFileSync} from 'node:fs'
+import {fileURLToPath} from 'node:url'
+const root=fileURLToPath(new URL('..',import.meta.url))
+const b=await build({entryPoints:[root+'/src/studio/spacSampleEngine.ts'],bundle:true,write:false,platform:'node',format:'cjs'})
+const m={exports:{}};new Function('require','module','exports',b.outputFiles[0].text)(createRequire(import.meta.url),m,m.exports);const a=m.exports
+const request={dataset:'SPAC-A01',params:{...a.spacDefaults}}
+const result=a.computeSpac(request)
+test('SPAC quadrature agrees with known J0 reference values',()=>{assert.ok(Math.abs(a.besselJ0(0)-1)<1e-12);assert.ok(Math.abs(a.besselJ0(1)-.7651976866)<1e-9);assert.ok(Math.abs(a.besselJ0(10)+.2459357645)<1e-9)})
+test('SPAC sample is deterministic, bounded and reports real progress',()=>{const progress=[],copy=JSON.stringify(request),next=a.computeSpac(request,v=>progress.push(v));assert.deepEqual(next,result);assert.equal(JSON.stringify(request),copy);assert.equal(progress.at(-1),100);assert.ok(progress.every((n,i)=>!i||n>=progress[i-1]));assert.ok(next.energy.flat().every(v=>Number.isFinite(v)&&v>=0&&v<=1));assert.equal(next.correlations.length,3);assert.equal(next.waveforms.length,7)})
+test('dataset and processing range modify actual sample outputs',()=>{const next=a.computeSpac({...request,dataset:'SPAC-A02',params:{...request.params,cmax:800}});assert.equal(next.waveforms.length,10);assert.equal(next.velocities.at(-1),800);assert.notDeepEqual(next.correlations,result.correlations);assert.notDeepEqual(next.ridge,result.ridge)})
+test('preprocessing changes only companion waveforms, not SPAC coefficients',()=>{const next=a.computeSpac({...request,params:{...request.params,detrend:false,normalize:false}});assert.notDeepEqual(next.waveforms,result.waveforms);assert.deepEqual(next.correlations,result.correlations);assert.match(a.spacSource,/不是该扫描的现场输入/)})
+test('SPAC rejects malformed requests without creating a result',()=>{for(const patch of [{fmin:NaN},{fmin:35,fmax:20},{step:0},{window:-1},{smooth:1.2},{cmax:0}])assert.throws(()=>a.computeSpac({...request,params:{...request.params,...patch}}));assert.throws(()=>a.validateSpac({...request,dataset:'FIELD-UNKNOWN'}))})
+test('picks sort, replace near frequency and fit physical coordinates',()=>{let picks=[];for(const p of [{f:8,c:400},{f:4,c:580},{f:12,c:310}])picks=a.addSpacPick(picks,p);assert.deepEqual(picks.map(p=>p.f),[4,8,12]);const next=a.addSpacPick(picks,{f:8,c:420});assert.equal(next.length,3);assert.equal(next[1].c,420);const fit=a.fitSpacPicks(next);assert.equal(fit.length,100);assert.ok(Math.abs(fit[0].c-580)<1e-7);assert.ok(Math.abs(fit.at(-1).c-310)<1e-7);assert.ok(fit.every(p=>Number.isFinite(p.f)&&Number.isFinite(p.c)));assert.ok(a.energyAt(result,next[0])>=0)})
+test('project import rejects oversized or out-of-range picks',()=>{assert.throws(()=>a.validateSpacPicks([{f:Infinity,c:1}],request));assert.throws(()=>a.validateSpacPicks([{f:3,c:9999}],request));assert.throws(()=>a.validateSpacPicks(Array(301).fill({f:3,c:400}),request));assert.deepEqual(a.validateSpacPicks([{f:3,c:400}],request),[{f:3,c:400}])})
+test('sample integration is limited to SPAC and preserves archived task route',()=>{const code=readFileSync(root+'/src/studio/StudioApp.tsx','utf8');assert.match(code,/route\.id==='spac'&&!route\.task\?<SpacWorkbench/);const css=readFileSync(root+'/src/studio/spacWorkbench.css','utf8');assert.doesNotMatch(css,/(^|\n)(body|html|\.studio|\.cinematic)/);const ui=readFileSync(root+'/src/studio/SpacWorkbench.tsx','utf8');assert.match(ui,/kuangda-spac-workbench-v1/);assert.match(ui,/重新计算并清空拾取/);assert.match(ui,/worker\.current\?\.terminate/);assert.doesNotMatch(ui,/CinematicShell|ScientificAlgorithmIndex|localMethods\.add/)})
